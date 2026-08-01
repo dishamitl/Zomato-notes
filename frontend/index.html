@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zomato Notes</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <nav id="navbar">
+            <h1>Zomato Notes</h1>
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search notes by title or tag..."
+            >
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+
+        <!-- Sidebar -->
+        <aside id="sidebar">
+
+            <h2>Categories</h2>
+
+            <div id="categoryTree"></div>
+
+        </aside>
+
+        <!-- Main Section -->
+        <section id="content">
+
+            <!-- Add Note Form -->
+            <section id="add-note">
+
+                <h2>Add Note</h2>
+
+                <form id="noteForm">
+
+                    <label for="title">Title</label>
+                    <input
+                        type="text"
+                        id="title"
+                        placeholder="Enter title"
+                    >
+
+                   <label for="contentInput">Content</label>
+<textarea
+    id="contentInput"
+    placeholder="Write your note..."
+></textarea>
+
+                    <label for="tag">Tag</label>
+                    <input
+                        type="text"
+                        id="tag"
+                        placeholder="Example: work"
+                    >
+
+                    <label for="ownerId">Owner ID</label>
+                    <input
+                        type="number"
+                        id="ownerId"
+                        placeholder="Enter owner ID"
+                    >
+
+                    <p id="errorMessage"></p>
+
+                    <button type="submit">
+                        Add Note
+                    </button>
+
+                </form>
+
+            </section>
+
+            <!-- Loading -->
+            <p id="loadingMessage">
+                Loading notes...
+            </p>
+
+            <!-- API Errors -->
+            <p id="apiError"></p>
+
+            <!-- Notes -->
+            <section id="notesContainer">
+
+            </section>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+
+        <p>
+            © 2026 Zomato Notes
+        </p>
+
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
