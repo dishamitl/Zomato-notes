@@ -1,6 +1,12 @@
 from sqlalchemy.orm import Session
 import models
 import schemas
+from algorithms import (
+    insertion_sort_by_key,
+    binary_search_iterative,
+    binary_search_recursive,
+    linear_search,
+)
 
 
 # ---------- User CRUD ----------
@@ -77,3 +83,102 @@ def bulk_create_notes(db: Session, notes: list[models.Note]):
     db.add_all(notes)
     db.commit()
     return notes
+from algorithms import insertion_sort_by_key
+from datetime import datetime
+
+def search_notes(db, keyword=None, sort_by=None):
+    if keyword is None and sort_by is None:
+        return []
+
+    notes = db.query(models.Note).all()
+
+    result = []
+
+    for note in notes:
+
+        note_dict = {
+            "id": note.id,
+            "title": note.title,
+            "content": note.content,
+            "tag": note.tag,
+            "created_at": note.created_at
+        }
+
+        if keyword:
+
+            score = note.content.lower().count(keyword.lower())
+            if score == 0:
+                continue
+
+            note_dict["score"] = score
+
+        if sort_by == "date":
+
+            note_dict["created_at_epoch"] = note.created_at.timestamp()
+
+        result.append(note_dict)
+
+    if keyword:
+
+        result = insertion_sort_by_key(result, "score")
+
+    elif sort_by == "date":
+
+        result = insertion_sort_by_key(result, "created_at_epoch")
+
+    return result[:5]
+def lookup_note(db, title: str, algo: str):
+
+    notes = (
+        db.query(models.Note)
+        .order_by(models.Note.title.asc())
+        .all()
+    )
+
+    titles = [note.title for note in notes]
+
+    if algo == "iterative":
+
+        index = binary_search_iterative(
+            titles,
+            title
+        )
+
+    elif algo == "recursive":
+
+        index = binary_search_recursive(
+            titles,
+            title,
+            0,
+            len(titles) - 1
+        )
+
+    else:
+        return None
+
+    if index == -1:
+        return None
+
+    return notes[index]
+def quick_find_note(db, tag: str):
+
+    notes = db.query(models.Note).all()
+
+    note_list = []
+
+    for note in notes:
+
+        note_list.append(
+            {
+                "id": note.id,
+                "title": note.title,
+                "content": note.content,
+                "tag": note.tag
+            }
+        )
+
+    return linear_search(
+        note_list,
+        "tag",
+        tag
+    )

@@ -20,6 +20,42 @@
                 id="searchInput"
                 placeholder="Search notes by title or tag..."
             >
+            <label for="sortSelect">Sort By:</label>
+
+<select id="sortSelect">
+    <option value="relevance">Relevance</option>
+    <option value="date">Date</option>
+</select>
+<section id="lookupSection">
+
+    <h3>Jump to Exact Title</h3>
+
+    <input
+        type="text"
+        id="lookupTitle"
+        placeholder="Enter exact title"
+    >
+
+    <button id="lookupButton">
+        Find
+    </button>
+
+</section>
+<section id="quickTagSection">
+
+    <h3>Quick Tag Jump</h3>
+
+    <button class="tagButton" data-tag="work">Work</button>
+
+    <button class="tagButton" data-tag="health">Health</button>
+
+    <button class="tagButton" data-tag="recipes">Recipes</button>
+
+    <button class="tagButton" data-tag="travel">Travel</button>
+
+    <button class="tagButton" data-tag="random">Random</button>
+
+</section>
         </nav>
     </header>
 

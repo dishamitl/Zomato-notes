@@ -9,7 +9,8 @@ const TOKEN = "zomato123";
 // =============================
 // DOM Elements
 // =============================
-
+const lookupTitle = document.getElementById("lookupTitle");
+const lookupButton = document.getElementById("lookupButton");
 const notesContainer = document.getElementById("notesContainer");
 const loadingMessage = document.getElementById("loadingMessage");
 const apiError = document.getElementById("apiError");
@@ -24,6 +25,7 @@ const ownerIdInput = document.getElementById("ownerId");
 const errorMessage = document.getElementById("errorMessage");
 
 const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
 const categoryTree = document.getElementById("categoryTree");
 let debounceTimer;
 const CATEGORY_TREE = {
@@ -60,18 +62,30 @@ const CATEGORY_TREE = {
         }
     ]
 };
-async function fetchNotes(tag = "") {
+async function fetchNotes(keyword = "", sortBy = "") {
 
     loadingMessage.style.display = "block";
     apiError.textContent = "";
 
     try {
 
-        let url = `${BASE_URL}/notes`;
+let url = `${BASE_URL}/notes`;
 
-        if (tag) {
-            url += `?tag=${encodeURIComponent(tag)}`;
-        }
+if (keyword && sortBy === "relevance") {
+
+    url = `${BASE_URL}/notes/search?keyword=${encodeURIComponent(keyword)}`;
+
+}
+else if (sortBy === "date") {
+
+    url = `${BASE_URL}/notes/search?sort_by=date`;
+
+}
+else if (keyword) {
+
+    url += `?tag=${encodeURIComponent(keyword)}`;
+
+}
 
         const response = await fetch(url);
 
@@ -294,25 +308,129 @@ noteForm.addEventListener("submit", async (event) => {
     }
 
 });
+let timer;
+
 searchInput.addEventListener("input", () => {
 
-    clearTimeout(debounceTimer);
+    clearTimeout(timer);
 
-    debounceTimer = setTimeout(() => {
+    timer = setTimeout(() => {
 
-        const searchText = searchInput.value.trim();
-
-        fetchNotes(searchText);
+        fetchNotes(
+            searchInput.value.trim(),
+            sortSelect.value
+        );
 
     }, 400);
 
 });
+sortSelect.addEventListener("change", () => {
+
+    fetchNotes(
+        searchInput.value.trim(),
+        sortSelect.value
+    );
+
+});
 document.addEventListener("DOMContentLoaded", () => {
 
-    fetchNotes();
+    fetchNotes("", "relevance");
 
     categoryTree.appendChild(
         renderCategoryTree(CATEGORY_TREE)
     );
+
+});
+async function lookupNote(title) {
+
+    const response = await fetch(
+        `${BASE_URL}/notes/lookup?title=${encodeURIComponent(title)}&algo=iterative`
+    );
+
+    if (!response.ok) {
+
+        throw new Error("Note not found.");
+
+    }
+
+    return await response.json();
+
+}
+lookupButton.addEventListener("click", async () => {
+
+    apiError.textContent = "";
+
+    const title = lookupTitle.value.trim();
+
+    if (!title) {
+
+        return;
+
+    }
+
+    try {
+
+        const note = await lookupNote(title);
+
+        renderNotes([note]);
+
+    }
+    catch (error) {
+
+        apiError.textContent = error.message;
+
+    }
+
+});
+async function quickFind(tag){
+
+    const response = await fetch(
+        `${BASE_URL}/notes/quick-find?tag=${encodeURIComponent(tag)}`
+    );
+
+    if(!response.ok){
+
+        throw new Error("No note found.");
+
+    }
+
+    return await response.json();
+
+}
+document.querySelectorAll(".tagButton").forEach(button=>{
+
+    button.addEventListener("click",async()=>{
+
+        try{
+
+            const note=await quickFind(button.dataset.tag);
+
+            renderNotes([note]);
+
+            const card=document.querySelector(".note-card");
+
+            if(card){
+
+                card.classList.add("highlight");
+
+                card.scrollIntoView({
+
+                    behavior:"smooth",
+
+                    block:"center"
+
+                });
+
+            }
+
+        }
+
+        catch(error){
+
+            apiError.textContent=error.message;
+
+        }
+
+    });
 
 });

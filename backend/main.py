@@ -128,6 +128,58 @@ def get_notes(
         return crud.get_notes_by_tag(db, tag)
 
     return crud.get_all_notes(db)
+@app.get("/notes/search")
+def search_notes(
+    keyword: str | None = None,
+    sort_by: str | None = None,
+    db: Session = Depends(get_db)
+):
+
+    return crud.search_notes(
+        db,
+        keyword,
+        sort_by
+    )
+@app.get("/notes/lookup")
+def lookup_note(
+    title: str,
+    algo: str,
+    db: Session = Depends(get_db)
+):
+
+    note = crud.lookup_note(
+        db,
+        title,
+        algo
+    )
+
+    if note is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Note not found."
+        )
+
+    return note
+@app.get("/notes/quick-find")
+def quick_find(
+    tag: str,
+    db: Session = Depends(get_db)
+):
+
+    note = crud.quick_find_note(
+        db,
+        tag
+    )
+
+    if note is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="No note found."
+        )
+
+    return note
 @app.get("/notes/{id}", response_model=schemas.NoteResponse)
 def get_note(
     id: int,
