@@ -1,19 +1,43 @@
-# Python
+# Virtual Environment
+venv/
+.env
+
+# Python Cache
 __pycache__/
 *.py[cod]
+*$py.class
+
+# SQLite Database
 *.db
-*.sqlite3
-*.log
-.venv/
-venv/
-env/
 
 # VS Code
 .vscode/
 
-# Environment
-.env
+# IntelliJ / PyCharm
+.idea/
 
-# OS files
+# macOS
 .DS_Store
+
+# Windows
 Thumbs.db
+
+# Log Files
+*.log
+
+# Python Build Files
+build/
+dist/
+*.egg-info/
+
+# Pytest Cache
+.pytest_cache/
+
+# Mypy Cache
+.mypy_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Hugging Face / Sentence Transformer Cache (optional)
+.cache/

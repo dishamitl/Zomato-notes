@@ -8,7 +8,6 @@ from algorithms import (
     linear_search,
 )
 
-
 # ---------- User CRUD ----------
 
 def create_user(db: Session, user: schemas.UserCreate):
@@ -83,14 +82,14 @@ def bulk_create_notes(db: Session, notes: list[models.Note]):
     db.add_all(notes)
     db.commit()
     return notes
-from algorithms import insertion_sort_by_key
-from datetime import datetime
 
 def search_notes(db, keyword=None, sort_by=None):
     if keyword is None and sort_by is None:
         return []
 
-    notes = db.query(models.Note).all()
+    notes = db.query(models.Note).filter(
+    models.Note.tag == "kb-demo"
+).all()
 
     result = []
 
@@ -162,7 +161,9 @@ def lookup_note(db, title: str, algo: str):
     return notes[index]
 def quick_find_note(db, tag: str):
 
-    notes = db.query(models.Note).all()
+    notes = db.query(models.Note).filter(
+    models.Note.tag == tag
+).all()
 
     note_list = []
 
@@ -181,4 +182,10 @@ def quick_find_note(db, tag: str):
         note_list,
         "tag",
         tag
+    )
+def get_ai_demo_notes(db):
+    return (
+        db.query(models.Note)
+        .filter(models.Note.tag == "ai-demo")
+        .all()
     )

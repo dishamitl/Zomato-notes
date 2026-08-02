@@ -40,6 +40,10 @@ class NoteUpdate(BaseModel):
     content: str | None = Field(default=None, min_length=1)
     tag: str | None = None
 
+class AISuggestion(BaseModel):
+    tags: list[str]
+    summary: str
+
 
 class NoteResponse(BaseModel):
     id: int
@@ -48,5 +52,7 @@ class NoteResponse(BaseModel):
     tag: str | None
     owner_id: int
     created_at: datetime
+
+    ai_suggestion: AISuggestion | None = None
 
     model_config = ConfigDict(from_attributes=True)

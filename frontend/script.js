@@ -9,6 +9,7 @@ const TOKEN = "zomato123";
 // =============================
 // DOM Elements
 // =============================
+const algoSelect = document.getElementById("algoSelect");
 const lookupTitle = document.getElementById("lookupTitle");
 const lookupButton = document.getElementById("lookupButton");
 const notesContainer = document.getElementById("notesContainer");
@@ -26,6 +27,8 @@ const errorMessage = document.getElementById("errorMessage");
 
 const searchInput = document.getElementById("searchInput");
 const sortSelect = document.getElementById("sortSelect");
+const smartSearchInput = document.getElementById("smartSearchInput");
+const smartSearchButton = document.getElementById("smartSearchButton");
 const categoryTree = document.getElementById("categoryTree");
 let debounceTimer;
 const CATEGORY_TREE = {
@@ -62,7 +65,7 @@ const CATEGORY_TREE = {
         }
     ]
 };
-async function fetchNotes(keyword = "", sortBy = "") {
+async function fetchNotes(keyword = "", sortBy = "relevance") {
 
     loadingMessage.style.display = "block";
     apiError.textContent = "";
@@ -159,6 +162,31 @@ if (!response.ok) {
 }
 
 }
+async function updateNoteTag(id, newTag) {
+
+    const response = await fetch(`${BASE_URL}/notes/${id}`, {
+
+        method: "PUT",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            tag: newTag
+        })
+
+    });
+
+    if (!response.ok) {
+
+        throw new Error("Failed to update tag.");
+
+    }
+
+    return await response.json();
+
+}
 function renderSingleNote(note) {
 
     const card = document.createElement("div");
@@ -172,6 +200,77 @@ function renderSingleNote(note) {
 
     const tag = document.createElement("p");
     tag.textContent = `Tag: ${note.tag}`;
+    // ================= AI Suggestion =================
+
+if (note.ai_suggestion) {
+
+    const aiBox = document.createElement("div");
+
+    aiBox.className = "ai-box";
+
+    const heading = document.createElement("h4");
+
+    heading.textContent = "AI Suggests";
+
+    const tags = document.createElement("p");
+
+    tags.textContent =
+        "Tags: " + note.ai_suggestion.tags.join(", ");
+
+    const summary = document.createElement("p");
+
+    summary.textContent =
+        "Summary: " + note.ai_suggestion.summary;
+
+    const applyBtn = document.createElement("button");
+
+    applyBtn.textContent = "Apply as Tag";
+
+    applyBtn.addEventListener("click", async () => {
+
+        try {
+
+            const updated = await updateNoteTag(
+
+                note.id,
+
+                note.ai_suggestion.tags[0]
+
+            );
+
+            tag.textContent = `Tag: ${updated.tag}`;
+
+        }
+
+        catch (error) {
+
+            apiError.textContent = error.message;
+
+        }
+
+    });
+
+    aiBox.appendChild(heading);
+
+    aiBox.appendChild(tags);
+    if (note.similarity !== undefined) {
+
+    const similarity = document.createElement("p");
+
+    similarity.innerHTML =
+        `<strong>Similarity:</strong> ${note.similarity.toFixed(3)}`;
+
+    aiBox.appendChild(similarity);
+
+}
+
+    aiBox.appendChild(summary);
+
+    aiBox.appendChild(applyBtn);
+
+    card.appendChild(aiBox);
+
+}
 
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
@@ -334,7 +433,7 @@ sortSelect.addEventListener("change", () => {
 });
 document.addEventListener("DOMContentLoaded", () => {
 
-    fetchNotes("", "relevance");
+    await fetchNotes();
 
     categoryTree.appendChild(
         renderCategoryTree(CATEGORY_TREE)
@@ -344,7 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function lookupNote(title) {
 
     const response = await fetch(
-        `${BASE_URL}/notes/lookup?title=${encodeURIComponent(title)}&algo=iterative`
+        `${BASE_URL}/notes/lookup?title=${encodeURIComponent(title)}&algo=${algoSelect.value}`
     );
 
     if (!response.ok) {
@@ -432,5 +531,49 @@ document.querySelectorAll(".tagButton").forEach(button=>{
         }
 
     });
+
+});
+async function smartSearch(query) {
+
+    const response = await fetch(
+
+        `${BASE_URL}/notes/smart-search?q=${encodeURIComponent(query)}`
+
+    );
+
+    if (!response.ok) {
+
+        throw new Error("Smart search failed.");
+
+    }
+
+    return await response.json();
+
+}
+smartSearchButton.addEventListener("click", async () => {
+
+    apiError.textContent = "";
+
+    const query = smartSearchInput.value.trim();
+
+    if (!query) {
+
+        return;
+
+    }
+
+    try {
+
+        const results = await smartSearch(query);
+
+        renderNotes(results);
+
+    }
+
+    catch (error) {
+
+        apiError.textContent = error.message;
+
+    }
 
 });

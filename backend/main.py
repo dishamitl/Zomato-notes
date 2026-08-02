@@ -5,11 +5,15 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy import text
 from fastapi import Query
 import time
-
+from typing import Optional
 import models
 import schemas
 import crud
 from database import engine, get_db
+from ai_service import get_ai_response, SYSTEM_PROMPT
+import json
+import logging
+from semantic_search import semantic_search
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -62,7 +66,6 @@ def home():
     }
 # -------------------- Authentication Dependency --------------------
 
-from typing import Optional
 
 API_TOKEN = "zomato123"
 
@@ -78,7 +81,6 @@ def verify_token(x_token: Optional[str] = Header(None)):
             status_code=403,
             detail="Invalid token."
         )
-import time
 
 
 def simulate_indexing(note_title: str):
@@ -114,10 +116,27 @@ def create_note(
         simulate_indexing,
         note.title
     )
+    created_note = crud.create_note(db, note)
 
-    return crud.create_note(db, note)
-from typing import Optional
+    ai_suggestion = None
 
+    try:
+        ai_response = get_ai_response(
+            created_note.content,
+            SYSTEM_PROMPT
+        )
+
+        ai_suggestion = json.loads(ai_response)
+
+    except Exception:
+        logging.exception("Failed to parse AI response")
+        ai_suggestion = None
+
+    response = created_note.__dict__.copy()
+
+    response["ai_suggestion"] = ai_suggestion
+
+    return response
 
 @app.get("/notes", response_model=list[schemas.NoteResponse])
 def get_notes(
@@ -180,6 +199,30 @@ def quick_find(
         )
 
     return note
+@app.get("/notes/smart-search")
+def smart_search(
+    q: str,
+    db: Session = Depends(get_db)
+):
+
+    notes = crud.get_ai_demo_notes(db)
+
+    note_list = []
+
+    for note in notes:
+
+        note_list.append({
+
+            "id": note.id,
+            "title": note.title,
+            "content": note.content,
+            "tag": note.tag,
+            "owner_id": note.owner_id,
+            "created_at": note.created_at
+
+        })
+
+    return semantic_search(q, note_list)
 @app.get("/notes/{id}", response_model=schemas.NoteResponse)
 def get_note(
     id: int,
